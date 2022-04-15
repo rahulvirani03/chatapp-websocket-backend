@@ -21,3 +21,13 @@ Content-Type: application/json
 {
     "token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiVmlyYXQiLCJpYXQiOjE2NDk5MjIxMjF9.iOwo75FW-9PK4Jldfx2JuLlW5PpWKWjZus7NX67NlGk"
 }
+
+###
+POST http://localhost:3000/signup
+Content-Type: application/json
+
+{
+    "username":"suername",
+    "email":"email",
+    "password":"password"
+}
