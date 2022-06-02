@@ -1,16 +1,15 @@
 require("dotenv").config();
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
-let refreshTokens = [];
-const secret = "IAMAWESOME";
+
 const signupController = async (req, res) => {
   const { username, email, password } = req.body;
   console.log(username, email, password);
   if (!username || !email || !password)
     return res.status(201).json("All fields are requireq");
-  const emailExists = await User.findOne({ email: email });
-  console.log(emailExists);
-  if (emailExists) return res.status(201).json("Email already exists");
+  const usernmeExists = await User.findOne({ username: username });
+  console.log(usernmeExists);
+  if (usernmeExists) return res.status(201).json("Username already exists");
   const newUser = new User({
     username: username,
     email: email,
@@ -18,8 +17,24 @@ const signupController = async (req, res) => {
   });
   const result = await newUser.save();
   console.log(result);
-  res.status(200).json(result);
+  const payload = {
+    username: username,
+    id: result._id,
+  };
+  jwt.sign(
+    payload,
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: 86400 },
+    (err, token) => {
+      if (err) return res.status(201).json(err);
+      return res.status(200).json({
+        message: "Success",
+        token: token,
+      });
+    }
+  );
 };
+
 
 const logoutController = (req, res) => {
   refreshTokens = refreshTokens.filter(
@@ -29,34 +44,37 @@ const logoutController = (req, res) => {
 };
 
 const getTokenAuth = (req, res) => {
-  const { token } = req.body;
-  console.log(token);
+  const token = req.headers.authorization;
   if (token === null) return res.sendStatus(401);
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
     if (err) {
-      console.log(err);
+      console.log("Inside err");
+
+      res.json({
+        isLoggedIn: false,
+      });
     } else {
-      console.log(user);
       res.json({
         isLoggedIn: true,
-        user: user.email,
+        user: {
+          id: user.id,
+          username: user.username,
+        },
       });
     }
   });
 };
 
 const loginController = async (req, res) => {
-  //Authenticate User
-  const { email, password } = req.body;
-  console.log({ email, password });
-  const user = await User.findOne({ email: email });
-
+  const { username, password } = req.body;
+  console.log({ username, password });
+  const user = await User.findOne({ username: username });
   if (user === null) return res.status(201).json("User not Found!");
   if (user.password !== password)
     return res.status(201).json("Incorrect password");
   const payload = {
-    email: email,
-    password: password,
+    username: username,
+    id: user._id,
   };
   jwt.sign(
     payload,
@@ -70,28 +88,7 @@ const loginController = async (req, res) => {
       });
     }
   );
-  //res.status(200).json(user);
-  //   const user = { name: username };
-  //   const accessToken = generateAccessToken(user);
-  //   const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET);
-  //   refreshTokens.push(refreshToken);
-  //   res.json({ accessToken, refreshToken });
 };
-
-function authenticateAccessToken(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  if (token == null) return res.sendStatus(401);
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-}
-
-function generateAccessToken(user) {
-  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "30s" });
-}
 
 module.exports = {
   loginController,

@@ -31,3 +31,6 @@ Content-Type: application/json
     "email":"email",
     "password":"password"
 }
+
+###
+POST http://localhost:4000/api/auth/login
