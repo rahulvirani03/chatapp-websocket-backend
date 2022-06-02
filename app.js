@@ -27,7 +27,7 @@ const server = app.listen(process.env.PORT || 4000, () => {
 
 const io = socket(server, {
   cors: {
-    origin: "https://chatapp-websocket-backend.herokuapp.com",
+    origin: "https://websocket-chatapp.netlify.app",
     methods: ["GET", "POST"],
   },
 });
