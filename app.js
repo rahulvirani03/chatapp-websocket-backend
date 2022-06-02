@@ -26,10 +26,10 @@ const server = app.listen(process.env.PORT || 4000, () => {
 });
 
 const io = socket(server, {
-  cors: {
-    origin: "https://websocket-chatapp.netlify.app",
-    methods: ["GET", "POST"],
-  },
+  // cors: {
+  //   origin: "https://websocket-chatapp.netlify.app",
+  //   methods: ["GET", "POST"],
+  // },
 });
 
 global.onlineUsers = new Map();
