@@ -3,11 +3,9 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
-var PORT = process.env.PORT || 4000
-const server = app.listen(8080,function(){
-  console.log('express server listening on port ' + server.address().port);
-   })
-const socket = require("socket.io")(server);
+var PORT = process.env.PORT
+
+
 
 
 //DB Connection
@@ -25,6 +23,18 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/", require("./routers"));
 
 //Socket Connection for Realtime Messages
+const server = app.listen(
+  PORT,
+  console.log(`Server running on PORT ${PORT}`)
+);
+
+const io = require("socket.io")(server, {
+  pingTimeout: 60000,
+  cors: {
+    origin: ["http://localhost:3000",'https://websocket-chatapp.netlify.app/']
+    // credentials: true,
+  },
+});
 // const server = app.listen(process.env.PORT || 4000, () => {
 //   console.log("Connected to PORT 4000");
 // });
@@ -33,14 +43,15 @@ app.use("/", require("./routers"));
 //   console.log('express server listening on port ' + server.address().port);
 //    })
 //console.log(server);
-const io = socket(server, {
+//const io = socket(server, {
   // cors: {
   //   origin: "https://websocket-chatapp.netlify.app",
   //   methods: ["GET", "POST"],
   // },
-});
+//});
 
 global.onlineUsers = new Map();
+
 io.on("connection", (socket) => {
   global.chatSocket = socket;
 
