@@ -4,11 +4,9 @@ const jwt = require("jsonwebtoken");
 
 const signupController = async (req, res) => {
   const { username, email, password } = req.body;
-  console.log(username, email, password);
   if (!username || !email || !password)
     return res.status(201).json("All fields are requireq");
   const usernmeExists = await User.findOne({ username: username });
-  console.log(usernmeExists);
   if (usernmeExists) return res.status(201).json("Username already exists");
   const newUser = new User({
     username: username,
@@ -16,7 +14,6 @@ const signupController = async (req, res) => {
     password: password,
   });
   const result = await newUser.save();
-  console.log(result);
   const payload = {
     username: username,
     id: result._id,
@@ -48,8 +45,6 @@ const getTokenAuth = (req, res) => {
   if (token === null) return res.sendStatus(401);
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
     if (err) {
-      console.log("Inside err");
-
       res.json({
         isLoggedIn: false,
       });
@@ -64,10 +59,8 @@ const getTokenAuth = (req, res) => {
     }
   });
 };
-
 const loginController = async (req, res) => {
   const { username, password } = req.body;
-  console.log({ username, password });
   const user = await User.findOne({ username: username });
   if (user === null) return res.status(201).json("User not Found!");
   if (user.password !== password)

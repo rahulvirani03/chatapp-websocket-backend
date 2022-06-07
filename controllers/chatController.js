@@ -8,39 +8,37 @@ exports.getUsers = async (req, res) => {
 };
 
 exports.getChats = async (req, res) => {
-
   const { id } = req.body;
-  console.log(id);
   let userResult = await User.find({
-    _id:{$ne : id}
+    _id: { $ne: id },
   });
-  let newUserList =[];
-  const chatResult = await chatRoom.find({
-    $or: [{ "user1.id": id }, { "user2.id": id }],
-  });
-      chatResult.forEach(chats=>{
-        if(id===chats.user1.id || id=== chats.user2.id)
-        {
-          userResult.map(user=>{
-            if(user._id.toString()=== chats.user1.id || user._id.toString() === chats.user2.id)
-              {
-                newUserList.push(user);
-              }
-          })
-         
+  let newUserList = [];
+  const chatResult = await chatRoom
+    .find({
+      $or: [{ "user1.id": id }, { "user2.id": id }],
+    })
+    .sort({ "lastMessage.time": -1 });
+  chatResult.forEach((chats) => {
+    if (id === chats.user1.id || id === chats.user2.id) {
+      userResult.map((user) => {
+        if (
+          user._id.toString() === chats.user1.id ||
+          user._id.toString() === chats.user2.id
+        ) {
+          newUserList.push(user);
         }
-      })
-
-  console.log(newUserList);
-   userResult = userResult.filter(ar => !newUserList.find(rm => (rm._id.toString() === ar._id.toString()))) 
-   console.log(userResult);
-   const result = {
-     chats: chatResult,
-     users: userResult
-   }
+      });
+    }
+  });
+  userResult = userResult.filter(
+    (ar) => !newUserList.find((rm) => rm._id.toString() === ar._id.toString())
+  );
+  const result = {
+    chats: chatResult,
+    users: userResult,
+  };
   res.status(200).json(result);
 };
-
 exports.createChatRoom = async (req, res) => {
   const { id, user1, user2 } = req.body;
   const newChatRomm = new chatRoom({
@@ -80,7 +78,6 @@ exports.getMessage = async (req, res) => {
     });
     const result = await newChat.save();
     res.json(result);
-    //console.log(result);
   } else {
     const prevChats = chatExists.messages;
     prevChats.push({
@@ -90,7 +87,7 @@ exports.getMessage = async (req, res) => {
     });
     const result = await chats.updateOne(
       { id: messageData.room },
-      { $set: { messages: prevChats },}
+      { $set: { messages: prevChats } }
     );
     res.json(result);
   }
@@ -100,27 +97,31 @@ exports.setLastMessage = async (req, res) => {
   const { lastMessageData } = req.body;
   const result = await chatRoom.updateOne(
     { id: lastMessageData.room },
-    { $set: { lastMessage: lastMessageData },}
+    { $set: { lastMessage: lastMessageData } }
   );
   res.json(result);
 };
 
-exports.setUserOnline = async (id) =>{
+exports.setUserOnline = async (id) => {
   const res = await chatRoom.updateMany(
-   {'user1.id':id},
-    {$set:{'user1.isOnline':true}}
-  )
+    { "user1.id": id },
+    { $set: { "user1.isOnline": true } }
+  );
   const new_res = await chatRoom.updateMany(
-   {'user2.id':id},
-    {$set:{'user2.isOnline':true}}
-  )
-// console.log(res);
-// console.log(new_res);
-}
+    { "user2.id": id },
+    { $set: { "user2.isOnline": true } }
+  );
+};
 
-exports.markAsRead = async (req,res)=>{
-  const {id} = req.body;
-  const updateRes =await chatRoom.updateOne({'id':id},{$set:{'lastMessage.isRead':true}}) 
-  console.log(updateRes);
-  res.json(updateRes)
-}
+exports.markAsRead = async (req, res) => {
+  const { id } = req.body;
+  const chatRoomToUpdate = await chatRoom.findOne({ id: id });
+  if (!chatRoomToUpdate.lastMessage) {
+    return res.json("No last Messages");
+  }
+  const updateRes = await chatRoom.updateOne(
+    { id: id },
+    { $set: { "lastMessage.isRead": true } }
+  );
+  res.json(updateRes);
+};

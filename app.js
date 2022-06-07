@@ -5,15 +5,11 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 var PORT = process.env.PORT
 
-
-
-
 //DB Connection
 mongoose
   .connect(process.env.MONGODB_URL)
   .then((result) => console.log("DB Connection Establised"))
   .catch((err) => console.log(err));
-
 //Middleware
 app.use(express.json());
 app.use(cors());
@@ -33,26 +29,13 @@ const io = require("socket.io")(server, {
   cors: {
     origin: ["http://localhost:3000",'https://websocket-chatapp.netlify.app'],
     methods: ["GET", "POST"]
-    // credentials: true,
   },
 });
-// const server = app.listen(process.env.PORT || 4000, () => {
-//   console.log("Connected to PORT 4000");
-// });
 
-// const server = app.listen(8080,function(){
-//   console.log('express server listening on port ' + server.address().port);
-//    })
-//console.log(server);
-//const io = socket(server, {
-  // cors: {
-  //   origin: "https://websocket-chatapp.netlify.app",
-  //   methods: ["GET", "POST"],
-  // },
-//});
 
+
+//socket functions 
 global.onlineUsers = new Map();
-
 io.on("connection", (socket) => {
   global.chatSocket = socket;
 
@@ -64,6 +47,7 @@ io.on("connection", (socket) => {
 
   //Sending receving messages
   socket.on("send-msg", (data) => {
+    
     const sendUserSocket = onlineUsers.get(data.to);
     if (sendUserSocket) {
       socket.to(sendUserSocket).emit("msg-recieve", {
@@ -91,10 +75,6 @@ io.on("connection", (socket) => {
       });
     }
   });
-  socket.off("unload",(data)=>{
-    console.log("Disconnected");
-    console.log({data});
-  })
-
+ 
   
 });

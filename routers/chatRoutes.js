@@ -2,6 +2,7 @@ const express =  require('express');
 const { getChats,getMessages,getUsers, getMessage,setLastMessage, createChatRoom, markAsRead } = require('../controllers/chatController');
 const router= express.Router();
 
+
 router.get('/user-list',getUsers)
 router.post('/chat-list',getChats);
 router.post('/create-chat-room',createChatRoom)
