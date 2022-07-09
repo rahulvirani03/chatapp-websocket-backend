@@ -26,12 +26,12 @@ const signupController = async (req, res) => {
       if (err) return res.status(201).json(err);
       return res.status(200).json({
         message: "Success",
+        user: payload,
         token: token,
       });
     }
   );
 };
-
 
 const logoutController = (req, res) => {
   refreshTokens = refreshTokens.filter(
@@ -77,6 +77,7 @@ const loginController = async (req, res) => {
       if (err) return res.status(201).json(err);
       return res.json({
         message: "Success",
+        user: payload,
         token: token,
       });
     }
